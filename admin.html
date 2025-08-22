@@ -19,7 +19,8 @@
   <h2>⚙ Панель администратора</h2>
   <table id="table"><thead>
     <tr>
-      <th>Login</th><th>Password</th><th>Username</th><th>Mem</th><th>Sub</th><th>can_download</th><th>ID</th><th>Удалить</th>
+      <th>Login</th><th>Password</th><th>Username</th>
+      <th>Mem</th><th>Sub (подписка)</th><th>can_download</th><th>ID</th><th>Удалить</th>
     </tr>
   </thead><tbody></tbody></table>
 
@@ -27,6 +28,7 @@
     <input id="newLogin" placeholder="Login">
     <input id="newPass" placeholder="Password">
     <input id="newUser" placeholder="Username">
+    <input id="newSub" placeholder="Sub (2026-01-01)">
     <button class="add" onclick="addUser()">➕ Добавить</button>
     <button onclick="goOut()">⬅ Выйти</button>
   </div>
@@ -63,7 +65,7 @@ function addUser(){
     password:document.getElementById("newPass").value||"1234",
     username:document.getElementById("newUser").value||"User"+id,
     mem:"1024Mb",
-    sub:"-",
+    sub:document.getElementById("newSub").value||"-",
     ident:String(id),
     can_download:false
   });
