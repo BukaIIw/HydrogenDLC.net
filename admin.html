@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<style>
+  body { background:#121212; color:white; font-family:Arial; }
+  table { margin:20px auto; border-collapse:collapse; width:90%; }
+  th, td { border:1px solid #555; padding:6px; }
+  th { background:#333; }
+  input { width:100%; background:#1e1e1e; color:white; border:none; }
+  button { margin:10px; padding:8px 16px; background:#6A5ACD; color:white; border:none; border-radius:5px; cursor:pointer;}
+</style>
+</head>
+<body>
+<h2 style="text-align:center">⚙ Панель администратора</h2>
+<p style="text-align:center">Редактируй пользователей ниже 👇</p>
+
+<table id="usersTable">
+  <thead>
+    <tr>
+      <th>Login</th>
+      <th>Password</th>
+      <th>Username</th>
+      <th>Sub</th>
+      <th>Mem</th>
+      <th>ID</th>
+      <th>can_download</th>
+      <th>file_url</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div style="text-align:center">
+  <button onclick="saveJSON()">💾 Сохранить users.json</button>
+  <a href="index.html"><button>⬅ Выйти</button></a>
+</div>
+
+<script>
+async function loadUsers(){
+  let res = await fetch("users.json");
+  let users = await res.json();
+  let tbody = document.querySelector("#usersTable tbody");
+  tbody.innerHTML = "";
+  users.forEach((u,i)=>{
+    let tr=document.createElement("tr");
+    Object.keys(u).forEach(k=>{
+      let td=document.createElement("td");
+      let inp=document.createElement("input");
+      inp.value = u[k];
+      inp.dataset.index=i;
+      inp.dataset.key=k;
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+loadUsers();
+
+function saveJSON(){
+  let rows = document.querySelectorAll("tbody tr");
+  let users = [];
+  rows.forEach(row=>{
+    let obj={};
+    row.querySelectorAll("input").forEach(inp=>{
+      let val = inp.value;
+      if(val === "true") obj[inp.dataset.key] = true;
+      else if(val === "false") obj[inp.dataset.key] = false;
+      else obj[inp.dataset.key] = val;
+    });
+    users.push(obj);
+  });
+
+  let blob = new Blob([JSON.stringify(users,null,2)], {type:"application/json"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download="users.json";
+  a.click();
+}
+</script>
+</body>
+</html>
