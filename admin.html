@@ -4,167 +4,74 @@
 <meta charset="UTF-8">
 <title>Admin Panel</title>
 <style>
-  body {
-    background:#121212;
-    color:#fff;
-    font-family:Arial,sans-serif;
-    margin:0; padding:20px;
-  }
-  h1 { color:#9cf; text-align:center; }
-  table {
-    width:100%;
-    border-collapse:collapse;
-    margin:20px auto;
-  }
-  th, td {
-    border:1px solid #444;
-    padding:8px;
-    text-align:center;
-  }
-  th { background:#222; }
-  .btn {
-    padding:6px 12px; margin:2px;
-    border:none; border-radius:4px;
-    cursor:pointer;
-  }
-  .edit { background:#6A5ACD; color:white; }
-  .delete { background:#cc3333; color:white; }
-  .save { background:#33aa33; color:white; }
-  .add { background:#4444aa; color:white; margin-top:15px; }
-  input {
-    background:#1c1c1c;
-    color:white;
-    border:1px solid #555;
-    padding:4px;
-    border-radius:3px;
-    width:95%;
-  }
+  body {background:#121212;color:white;font-family:Arial;}
+  h2 {text-align:center;margin-top:20px;}
+  table {margin:20px auto;border-collapse:collapse;width:95%;}
+  th,td{border:1px solid #555;padding:6px;text-align:center;}
+  th{background:#333;}
+  input{width:100%;background:#1c1c1c;color:white;border:none;padding:4px;}
+  button{margin:5px;padding:6px 12px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
+  .del{background:#b33;}
+  .add{background:#3a7;}
 </style>
 </head>
 <body>
-
-<h1>⚙ Панель администратора</h1>
-
-<table id="usersTable">
-  <thead>
+  <h2>⚙ Панель администратора</h2>
+  <table id="table"><thead>
     <tr>
-      <th>ID</th>
-      <th>Login</th>
-      <th>Password</th>
-      <th>Username</th>
-      <th>Mem</th>
-      <th>Подписка</th>
-      <th>can_download</th>
-      <th>file_url</th>
-      <th>Действия</th>
+      <th>Login</th><th>Password</th><th>Username</th><th>Mem</th><th>Sub</th><th>can_download</th><th>ID</th><th>Удалить</th>
     </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+  </thead><tbody></tbody></table>
 
-<h3>➕ Добавить нового пользователя</h3>
-<div style="display:flex;flex-wrap:wrap;gap:10px;">
-  <input id="addLogin" placeholder="Login">
-  <input id="addPassword" placeholder="Password">
-  <input id="addUsername" placeholder="Username">
-  <input id="addMem" placeholder="Mem (например 4096Mb)">
-  <input id="addSub" placeholder="Подписка (2026-01-01)">
-  <input id="addDownload" placeholder="can_download (true/false)">
-  <input id="addFile" placeholder="file_url">
-</div>
-<button class="btn add" onclick="addUser()">Добавить</button>
+  <div style="text-align:center;">
+    <input id="newLogin" placeholder="Login">
+    <input id="newPass" placeholder="Password">
+    <input id="newUser" placeholder="Username">
+    <button class="add" onclick="addUser()">➕ Добавить</button>
+    <button onclick="goOut()">⬅ Выйти</button>
+  </div>
 
 <script>
-// Загружаем пользователей (из localStorage или базовые)
-let users = JSON.parse(localStorage.getItem("users")) || [
-  { ident:"1", login:"admin", password:"1234", username:"Administrator", mem:"16384Mb", sub:"-", can_download:true, file_url:"" },
-  { ident:"2", login:"user", password:"pass", username:"TestUser", mem:"4096Mb", sub:"-", can_download:false, file_url:"" }
-];
+let users = JSON.parse(localStorage.getItem("users")) || [];
 
 function renderUsers(){
-  const tbody = document.querySelector("#usersTable tbody");
+  const tbody=document.querySelector("#table tbody");
   tbody.innerHTML="";
   users.forEach((u,i)=>{
-    let tr=document.createElement("tr");
+    const tr=document.createElement("tr");
     tr.innerHTML=`
+      <td><input value="${u.login}" onchange="edit(${i},'login',this.value)"></td>
+      <td><input value="${u.password}" onchange="edit(${i},'password',this.value)"></td>
+      <td><input value="${u.username}" onchange="edit(${i},'username',this.value)"></td>
+      <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
+      <td><input value="${u.sub}" onchange="edit(${i},'sub',this.value)"></td>
+      <td><input value="${u.can_download}" onchange="edit(${i},'can_download',this.value==='true')"></td>
       <td>${u.ident}</td>
-      <td>${u.login}</td>
-      <td>${u.password}</td>
-      <td>${u.username}</td>
-      <td>${u.mem}</td>
-      <td>${u.sub}</td>
-      <td>${u.can_download}</td>
-      <td>${u.file_url}</td>
-      <td>
-        <button class="btn edit" onclick="editUser(${i})">✏ Редакт.</button>
-        <button class="btn delete" onclick="deleteUser(${i})">❌ Удалить</button>
-      </td>
+      <td><button class="del" onclick="delUser(${i})">❌</button></td>
     `;
     tbody.appendChild(tr);
   });
-}
-
-function deleteUser(i){
-  if(confirm("Удалить пользователя "+users[i].login+"?")){
-    users.splice(i,1);
-    saveUsers();
-    renderUsers();
-  }
-}
-
-function editUser(i){
-  const u = users[i];
-  const tbody = document.querySelector("#usersTable tbody");
-  const row = tbody.rows[i];
-  row.innerHTML=`
-    <td><input value="${u.ident}" id="ident_${i}"></td>
-    <td><input value="${u.login}" id="login_${i}"></td>
-    <td><input value="${u.password}" id="password_${i}"></td>
-    <td><input value="${u.username}" id="username_${i}"></td>
-    <td><input value="${u.mem}" id="mem_${i}"></td>
-    <td><input value="${u.sub}" id="sub_${i}"></td>
-    <td><input value="${u.can_download}" id="download_${i}"></td>
-    <td><input value="${u.file_url}" id="file_${i}"></td>
-    <td><button class="btn save" onclick="saveEdit(${i})">✔ Сохранить</button></td>
-  `;
-}
-
-function saveEdit(i){
-  users[i] = {
-    ident: document.getElementById("ident_"+i).value,
-    login: document.getElementById("login_"+i).value,
-    password: document.getElementById("password_"+i).value,
-    username: document.getElementById("username_"+i).value,
-    mem: document.getElementById("mem_"+i).value,
-    sub: document.getElementById("sub_"+i).value,
-    can_download: document.getElementById("download_"+i).value === "true",
-    file_url: document.getElementById("file_"+i).value
-  };
-  saveUsers();
-  renderUsers();
-}
-
-function addUser(){
-  let id = users.length+1;
-  users.push({
-    ident: String(id),
-    login: document.getElementById("addLogin").value || "user"+id,
-    password: document.getElementById("addPassword").value || "1234",
-    username: document.getElementById("addUsername").value || "User"+id,
-    mem: document.getElementById("addMem").value || "1024Mb",
-    sub: document.getElementById("addSub").value || "-",
-    can_download: document.getElementById("addDownload").value === "true",
-    file_url: document.getElementById("addFile").value || ""
-  });
-  saveUsers();
-  renderUsers();
-}
-
-function saveUsers(){
   localStorage.setItem("users", JSON.stringify(users));
 }
 
-// Первичный запуск
+function edit(i,key,value){ users[i][key]=value; localStorage.setItem("users",JSON.stringify(users)); }
+function delUser(i){ users.splice(i,1); localStorage.setItem("users",JSON.stringify(users)); renderUsers(); }
+function addUser(){
+  let id=users.length+1;
+  users.push({
+    login:document.getElementById("newLogin").value||"newuser"+id,
+    password:document.getElementById("newPass").value||"1234",
+    username:document.getElementById("newUser").value||"User"+id,
+    mem:"1024Mb",
+    sub:"-",
+    ident:String(id),
+    can_download:false
+  });
+  localStorage.setItem("users",JSON.stringify(users));
+  renderUsers();
+}
+function goOut(){ window.location="index.html"; }
+
 renderUsers();
 </script>
 </body>
