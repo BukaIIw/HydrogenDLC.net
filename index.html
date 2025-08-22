@@ -14,21 +14,37 @@
   <div class="box">
     <h2>Добро пожаловать!</h2>
     <input id="login" type="text" placeholder="Введите логин"><br>
-    <input id="key" type="password" placeholder="Введите ключ"><br>
+    <input id="key" type="password" placeholder="Введите пароль"><br>
     <button onclick="auth()">Авторизоваться →</button>
     <p id="error" style="color:red;"></p>
   </div>
 
   <script>
-    function auth() {
+    async function auth() {
       const login = document.getElementById("login").value;
       const key   = document.getElementById("key").value;
 
-      // ✨ простая проверка
-      if (login === "user" && key === "1234") {
-        window.location.href = "loading.html";
-      } else {
-        document.getElementById("error").innerText = "❌ Неверный логин или ключ";
+      try {
+        const response = await fetch("users.json");
+        const users = await response.json();
+
+        // ищем совпадение логина и пароля
+        const user = users.find(u => u.login === login && u.password === key);
+
+        if (user) {
+          // сохраняем в localStorage его данные
+          localStorage.setItem("username", user.username);
+          localStorage.setItem("sub", user.sub);
+          localStorage.setItem("mem", user.mem);
+          localStorage.setItem("ident", user.ident);
+
+          // → переход на загрузку
+          window.location.href = "loading.html";
+        } else {
+          document.getElementById("error").innerText = "❌ Неверный логин или ключ!";
+        }
+      } catch (err) {
+        document.getElementById("error").innerText = "⚠ Ошибка загрузки users.json";
       }
     }
   </script>
