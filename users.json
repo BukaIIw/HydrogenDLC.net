@@ -1,21 +1,21 @@
 [
   {
-    "login": "mylogin",
-    "password": "mypassword",
-    "username": "Buka",
-    "sub": "2026-05-10",
-    "mem": "8192Mb",
-    "ident": "777",
+    "login": "user",
+    "password": "1234",
+    "username": "axmetalls",
+    "sub": "2025-06-02",
+    "mem": "3772Mb",
+    "ident": "202",
     "can_download": true,
     "file_url": "https://speed.hetzner.de/1MB.bin"
   },
   {
-    "login": "guest",
-    "password": "123",
-    "username": "GuestUser",
-    "sub": "2026-01-01",
-    "mem": "2048Mb",
-    "ident": "111",
+    "login": "buk",
+    "password": "5555",
+    "username": "buk",
+    "sub": "2060-05-10",
+    "mem": "4096Mb",
+    "ident": "999",
     "can_download": false
   }
 ]
