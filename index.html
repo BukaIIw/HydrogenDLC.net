@@ -2,12 +2,34 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Вход</title>
+  <title>LoaderGuard — Вход</title>
   <style>
-    body { background:#121212; color:#fff; font-family:Arial; text-align:center; }
-    .box { margin:100px auto; width:400px; padding:20px; background:#1e1e1e; border-radius:10px; }
-    input, button { width:300px; padding:10px; margin:10px; border-radius:5px; border:none; }
-    button { background:#6A5ACD; color:#fff; cursor:pointer; }
+    body { 
+      background:#121212; 
+      color:#fff; 
+      font-family:Arial; 
+      text-align:center; 
+    }
+    .box { 
+      margin:100px auto; 
+      width:400px; 
+      padding:20px; 
+      background:#1e1e1e; 
+      border-radius:10px; 
+    }
+    input, button { 
+      width:300px; 
+      padding:10px; 
+      margin:10px; 
+      border-radius:5px; 
+      border:none; 
+    }
+    button { 
+      background:#6A5ACD; 
+      color:#fff; 
+      cursor:pointer; 
+    }
+    #error { color:red; }
   </style>
 </head>
 <body>
@@ -16,7 +38,7 @@
     <input id="login" type="text" placeholder="Введите логин"><br>
     <input id="key" type="password" placeholder="Введите пароль"><br>
     <button onclick="auth()">Авторизоваться →</button>
-    <p id="error" style="color:red;"></p>
+    <p id="error"></p>
   </div>
 
   <script>
@@ -25,26 +47,33 @@
       const key   = document.getElementById("key").value;
 
       try {
+        // ⚠ users.json должен лежать в том же репозитории и быть доступным по GitHub Pages
         const response = await fetch("users.json");
         const users = await response.json();
 
-        // ищем совпадение логина и пароля
-        const user = users.find(u => u.login === login && u.password === key);
+        // Ищем пользователя, убираем лишние пробелы и игнорируем регистр логина
+        const user = users.find(u => 
+          u.login.toLowerCase().trim() === login.toLowerCase().trim() &&
+          u.password.trim() === key.trim()
+        );
 
         if (user) {
-          // сохраняем в localStorage его данные
+          // Сохраняем профиль в localStorage
           localStorage.setItem("username", user.username);
           localStorage.setItem("sub", user.sub);
           localStorage.setItem("mem", user.mem);
           localStorage.setItem("ident", user.ident);
+          localStorage.setItem("can_download", user.can_download);
+          localStorage.setItem("file_url", user.file_url);
 
-          // → переход на загрузку
+          // Переход на загрузку
           window.location.href = "loading.html";
         } else {
           document.getElementById("error").innerText = "❌ Неверный логин или ключ!";
         }
       } catch (err) {
         document.getElementById("error").innerText = "⚠ Ошибка загрузки users.json";
+        console.error(err);
       }
     }
   </script>
