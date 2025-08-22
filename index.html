@@ -4,31 +4,70 @@
 <meta charset="UTF-8">
 <title>Вход</title>
 <style>
-  body {background:#121212;color:#fff;font-family:Arial;text-align:center;}
-  .box {margin:120px auto;width:350px;padding:25px;background:#1e1e1e;border-radius:12px;}
-  input,button{width:90%;padding:10px;margin:10px 0;border-radius:6px;border:none;}
-  input{background:#2a2a2a;color:#fff;}
-  button{background:#6A5ACD;color:#fff;font-weight:bold;cursor:pointer;}
-  #error{color:red;}
+  body {background:#121212;color:#fff;font-family:Arial;text-align:center; margin:0;}
+  .box {
+    margin:120px auto;
+    width:350px;
+    padding:25px;
+    background:#1e1e1e;
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.6);
+  }
+  h2 {margin-bottom: 20px;}
+  input,button {
+    width:90%;
+    padding:10px;
+    margin:10px 0;
+    border-radius:6px;
+    border:none;
+    font-size:15px;
+  }
+  input {background:#2a2a2a;color:#fff;}
+  button {
+    background:#6A5ACD;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+  }
+  button:hover {background:#5848c2;}
+  #error{color:red; margin-top:10px;}
+  .danger{background:#b33;}
+  .danger:hover{background:#a22;}
 </style>
 </head>
 <body>
   <div class="box">
-    <h2>Добро пожаловать</h2>
-    <input id="login" type="text" placeholder="Логин"><br>
-    <input id="password" type="password" placeholder="Пароль"><br>
-    <button onclick="auth()">Войти</button>
+    <h2>Добро пожаловать!</h2>
+    <input id="login" type="text" placeholder="Введите логин"><br>
+    <input id="password" type="password" placeholder="Введите пароль"><br>
+    <button onclick="auth()">Авторизоваться →</button>
     <p id="error"></p>
+    <button class="danger" onclick="resetUsers()">♻ Сбросить пользователей</button>
   </div>
 
 <script>
-  // demo-пользователи по умолчанию
-  let users = JSON.parse(localStorage.getItem("users")) || [
+  // ---- дефолтные аккаунты ----
+  const defaultUsers = [
     {login:"admin", password:"1234", username:"Administrator", sub:"-", mem:"16384Mb", ident:"1", can_download:true},
     {login:"user", password:"pass", username:"TestUser", sub:"-", mem:"4096Mb", ident:"2", can_download:false}
   ];
-  localStorage.setItem("users", JSON.stringify(users));
 
+  // загружаем список users из localStorage или сбрасываем на дефолтный
+  function loadUsers(){
+    try {
+      let stored = JSON.parse(localStorage.getItem("users"));
+      if(Array.isArray(stored) && stored.length) return stored;
+      else throw "empty";
+    } catch(e){
+      localStorage.setItem("users", JSON.stringify(defaultUsers));
+      return defaultUsers;
+    }
+  }
+
+  let users = loadUsers();
+
+  // ---- авторизация ----
   function auth(){
     const login = document.getElementById("login").value.trim();
     const pass  = document.getElementById("password").value.trim();
@@ -41,6 +80,13 @@
     } else {
       document.getElementById("error").innerText="❌ Неверный логин или пароль";
     }
+  }
+
+  // ---- сброс пользователей ----
+  function resetUsers(){
+    localStorage.setItem("users", JSON.stringify(defaultUsers));
+    alert("✅ Пользователи сброшены!\n\nДоступны учётки:\n admin / 1234\n user / pass ");
+    location.reload();
   }
 </script>
 </body>
