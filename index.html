@@ -1,99 +1,47 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>LoaderGuard — Вход</title>
-  <style>
-    body {
-      background:#121212;
-      color:#fff;
-      font-family:Arial, sans-serif;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      margin:0;
-    }
-    .box {
-      background:#1e1e1e;
-      padding:30px;
-      border-radius:12px;
-      width:350px;
-      text-align:center;
-      box-shadow:0 0 15px rgba(0,0,0,0.5);
-    }
-    h2 { margin-bottom:20px; }
-    input {
-      width:90%;
-      padding:10px;
-      margin:10px 0;
-      border-radius:6px;
-      border:none;
-      background:#2a2a2a;
-      color:#fff;
-    }
-    button {
-      width:95%;
-      padding:12px;
-      margin-top:15px;
-      border:none;
-      border-radius:6px;
-      background:#6A5ACD;
-      color:white;
-      font-weight:bold;
-      cursor:pointer;
-    }
-    #error { color:red; margin-top:10px; }
-  </style>
+<meta charset="UTF-8">
+<title>Вход</title>
+<style>
+  body {background:#121212;color:#fff;font-family:Arial;text-align:center;}
+  .box {margin:120px auto;width:350px;padding:25px;background:#1e1e1e;border-radius:12px;}
+  input,button{width:90%;padding:10px;margin:10px 0;border-radius:6px;border:none;}
+  input{background:#2a2a2a;color:#fff;}
+  button{background:#6A5ACD;color:#fff;font-weight:bold;cursor:pointer;}
+  #error{color:red;}
+</style>
 </head>
 <body>
   <div class="box">
-    <h2>Добро пожаловать!</h2>
-    <input id="login" type="text" placeholder="Введите логин"><br>
-    <input id="key" type="password" placeholder="Введите пароль"><br>
-    <button onclick="auth()">Авторизоваться →</button>
+    <h2>Добро пожаловать</h2>
+    <input id="login" type="text" placeholder="Логин"><br>
+    <input id="password" type="password" placeholder="Пароль"><br>
+    <button onclick="auth()">Войти</button>
     <p id="error"></p>
   </div>
 
-  <script>
-    async function auth() {
-      const login = document.getElementById("login").value;
-      const key   = document.getElementById("key").value;
+<script>
+  // demo-пользователи по умолчанию
+  let users = JSON.parse(localStorage.getItem("users")) || [
+    {login:"admin", password:"1234", username:"Administrator", sub:"-", mem:"16384Mb", ident:"1", can_download:true},
+    {login:"user", password:"pass", username:"TestUser", sub:"-", mem:"4096Mb", ident:"2", can_download:false}
+  ];
+  localStorage.setItem("users", JSON.stringify(users));
 
-      try {
-        // ⚠️ users.json должен лежать в корне репозитория
-        const response = await fetch("users.json");
-        const users = await response.json();
+  function auth(){
+    const login = document.getElementById("login").value.trim();
+    const pass  = document.getElementById("password").value.trim();
+    const user = users.find(u=>u.login===login && u.password===pass);
 
-        // Поиск пользователя
-        const user = users.find(u =>
-          u.login.toLowerCase().trim() === login.toLowerCase().trim() &&
-          u.password.trim() === key.trim()
-        );
-
-        if (user) {
-          // сохраняем данные в localStorage
-          localStorage.setItem("username", user.username);
-          localStorage.setItem("mem", user.mem);
-          localStorage.setItem("ident", user.ident);
-          localStorage.setItem("sub", user.sub || "⛔ подписка не выдана");
-          localStorage.setItem("can_download", user.can_download);
-          localStorage.setItem("file_url", user.file_url || "");
-
-          // для админа отдельный вход
-          if (user.login.toLowerCase() === "admin") {
-            window.location.href = "admin.html";
-          } else {
-            window.location.href = "loading.html";
-          }
-        } else {
-          document.getElementById("error").innerText = "❌ Неверный логин или пароль!";
-        }
-      } catch (err) {
-        document.getElementById("error").innerText = "⚠ Ошибка загрузки users.json";
-        console.error(err);
-      }
+    if(user){
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      if(user.login==="admin") window.location="admin.html";
+      else window.location="profile.html";
+    } else {
+      document.getElementById("error").innerText="❌ Неверный логин или пароль";
     }
-  </script>
+  }
+</script>
 </body>
 </html>
