@@ -4,32 +4,46 @@
   <meta charset="UTF-8">
   <title>LoaderGuard — Вход</title>
   <style>
-    body { 
-      background:#121212; 
-      color:#fff; 
-      font-family:Arial; 
-      text-align:center; 
+    body {
+      background:#121212;
+      color:#fff;
+      font-family:Arial, sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
     }
-    .box { 
-      margin:100px auto; 
-      width:400px; 
-      padding:20px; 
-      background:#1e1e1e; 
-      border-radius:10px; 
+    .box {
+      background:#1e1e1e;
+      padding:30px;
+      border-radius:12px;
+      width:350px;
+      text-align:center;
+      box-shadow:0 0 15px rgba(0,0,0,0.5);
     }
-    input, button { 
-      width:300px; 
-      padding:10px; 
-      margin:10px; 
-      border-radius:5px; 
-      border:none; 
+    h2 { margin-bottom:20px; }
+    input {
+      width:90%;
+      padding:10px;
+      margin:10px 0;
+      border-radius:6px;
+      border:none;
+      background:#2a2a2a;
+      color:#fff;
     }
-    button { 
-      background:#6A5ACD; 
-      color:#fff; 
-      cursor:pointer; 
+    button {
+      width:95%;
+      padding:12px;
+      margin-top:15px;
+      border:none;
+      border-radius:6px;
+      background:#6A5ACD;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
     }
-    #error { color:red; }
+    #error { color:red; margin-top:10px; }
   </style>
 </head>
 <body>
@@ -47,29 +61,33 @@
       const key   = document.getElementById("key").value;
 
       try {
-        // ⚠ users.json должен лежать в том же репозитории и быть доступным по GitHub Pages
+        // ⚠️ users.json должен лежать в корне репозитория
         const response = await fetch("users.json");
         const users = await response.json();
 
-        // Ищем пользователя, убираем лишние пробелы и игнорируем регистр логина
-        const user = users.find(u => 
+        // Поиск пользователя
+        const user = users.find(u =>
           u.login.toLowerCase().trim() === login.toLowerCase().trim() &&
           u.password.trim() === key.trim()
         );
 
         if (user) {
-          // Сохраняем профиль в localStorage
+          // сохраняем данные в localStorage
           localStorage.setItem("username", user.username);
-          localStorage.setItem("sub", user.sub);
           localStorage.setItem("mem", user.mem);
           localStorage.setItem("ident", user.ident);
+          localStorage.setItem("sub", user.sub || "⛔ подписка не выдана");
           localStorage.setItem("can_download", user.can_download);
-          localStorage.setItem("file_url", user.file_url);
+          localStorage.setItem("file_url", user.file_url || "");
 
-          // Переход на загрузку
-          window.location.href = "loading.html";
+          // для админа отдельный вход
+          if (user.login.toLowerCase() === "admin") {
+            window.location.href = "admin.html";
+          } else {
+            window.location.href = "loading.html";
+          }
         } else {
-          document.getElementById("error").innerText = "❌ Неверный логин или ключ!";
+          document.getElementById("error").innerText = "❌ Неверный логин или пароль!";
         }
       } catch (err) {
         document.getElementById("error").innerText = "⚠ Ошибка загрузки users.json";
