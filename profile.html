@@ -4,26 +4,82 @@
   <meta charset="UTF-8">
   <title>Профиль</title>
   <style>
-    body { background:#121212; color:#fff; font-family:Arial; text-align:center;}
-    .box { margin:60px auto; width:420px; padding:20px; background:#1e1e1e; border-radius:10px; }
-    button{background:#6A5ACD;padding:10px;color:white;border:none;border-radius:5px;cursor:pointer;}
+    body {
+      background:#121212;
+      color:#fff;
+      font-family:Arial, sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
+    }
+    .box {
+      background:#1e1e1e;
+      padding:30px;
+      border-radius:12px;
+      width:420px;
+      text-align:center;
+      box-shadow:0 0 15px rgba(0,0,0,0.5);
+    }
+    h2 { margin-bottom:20px; }
+    p { margin:6px 0; font-size:16px; }
+    span { font-weight:bold; color:#9ab; }
+    button {
+      margin-top:15px;
+      padding:10px 20px;
+      border:none;
+      border-radius:6px;
+      background:#6A5ACD;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    .no-sub { color:red; font-weight:bold; }
+    .ok-sub { color:lightgreen; font-weight:bold; }
   </style>
 </head>
 <body>
   <div class="box">
     <h2>👤 Профиль</h2>
-    <p><b>Никнейм:</b> <span id="nick"></span></p>
+    <p><b>Ник:</b> <span id="nick"></span></p>
     <p><b>Подписка:</b> <span id="sub"></span></p>
     <p><b>Память:</b> <span id="mem"></span></p>
     <p><b>ID:</b> <span id="ident"></span></p>
-    <a href="index.html"><button onclick="logout()">Выйти</button></a>
+
+    <div id="adminPanelBtn"></div>
+
+    <button onclick="logout()">Выйти</button>
   </div>
 
   <script>
-    document.getElementById("nick").innerText  = localStorage.getItem("username") || "-";
-    document.getElementById("sub").innerText   = localStorage.getItem("sub") || "-";
-    document.getElementById("mem").innerText   = localStorage.getItem("mem") || "-";
-    document.getElementById("ident").innerText = localStorage.getItem("ident") || "-";
+    // получаем данные из localStorage
+    const username = localStorage.getItem("username") || "Неизвестно";
+    const sub = localStorage.getItem("sub") || "⛔ подписка не выдана";
+    const mem = localStorage.getItem("mem") || "-";
+    const ident = localStorage.getItem("ident") || "-";
+    const loginName = localStorage.getItem("login") || ""; // сохраняй login в index.html!
+
+    // подставляем в HTML
+    document.getElementById("nick").textContent = username;
+    document.getElementById("mem").textContent = mem;
+    document.getElementById("ident").textContent = ident;
+
+    // подписка: если не выдана → красным, иначе зелёным
+    const subElem = document.getElementById("sub");
+    if (sub === "⛔ подписка не выдана") {
+      subElem.textContent = sub;
+      subElem.classList.add("no-sub");
+    } else {
+      subElem.textContent = sub;
+      subElem.classList.add("ok-sub");
+    }
+
+    // если админ → показать кнопку "Админ панель"
+    if (username.toLowerCase() === "administrator" || loginName.toLowerCase() === "admin") {
+      document.getElementById("adminPanelBtn").innerHTML =
+        '<a href="admin.html"><button>⚙ Открыть Admin Panel</button></a>';
+    }
 
     function logout() {
       localStorage.clear();
