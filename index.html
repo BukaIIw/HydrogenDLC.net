@@ -1,34 +1,36 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>LoaderGuard — Вход</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Вход</title>
+  <style>
     body { background:#121212; color:#fff; font-family:Arial; text-align:center; }
     .box { margin:100px auto; width:400px; padding:20px; background:#1e1e1e; border-radius:10px; }
     input, button { width:300px; padding:10px; margin:10px; border-radius:5px; border:none; }
     button { background:#6A5ACD; color:#fff; cursor:pointer; }
-</style>
+  </style>
 </head>
 <body>
-<div class="box">
+  <div class="box">
     <h2>Добро пожаловать!</h2>
-    <p>Введите данные учетной записи</p>
-    <input type="text" placeholder="Введите логин"><br>
-    <input type="password" placeholder="Введите ключ"><br>
-    <button onclick="openProfile()">Авторизоваться →</button>
-</div>
+    <input id="login" type="text" placeholder="Введите логин"><br>
+    <input id="key" type="password" placeholder="Введите ключ"><br>
+    <button onclick="auth()">Авторизоваться →</button>
+    <p id="error" style="color:red;"></p>
+  </div>
 
-<script>
-function openProfile() {
-    document.body.innerHTML = `
-        <h2 style="margin-top:200px;">⏳ Загрузка вашего профиля...</h2>
-        <p style="font-size:40px;">● ● ●</p>
-    `;
-    setTimeout(() => {
-        window.location.href = "profile.html";
-    }, 2000);
-}
-</script>
+  <script>
+    function auth() {
+      const login = document.getElementById("login").value;
+      const key   = document.getElementById("key").value;
+
+      // ✨ простая проверка
+      if (login === "user" && key === "1234") {
+        window.location.href = "loading.html";
+      } else {
+        document.getElementById("error").innerText = "❌ Неверный логин или ключ";
+      }
+    }
+  </script>
 </body>
 </html>
