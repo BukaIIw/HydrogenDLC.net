@@ -42,10 +42,6 @@
   }
   button:hover { background:#5848c2; }
   #error { color:red; margin-top:10px; }
-  .danger {
-    background:#b33;
-  }
-  .danger:hover { background:#922; }
 </style>
 </head>
 <body>
@@ -55,52 +51,45 @@
     <input id="password" type="password" placeholder="Введите пароль"><br>
     <button onclick="auth()">Авторизоваться →</button>
     <p id="error"></p>
-    <button class="danger" onclick="resetUsers()">♻ Сбросить пользователей</button>
   </div>
 
 <script>
+/* Загрузка списка пользователей из users.html */
 async function loadUsers(){
-  try {
-    // Загружаем users.html
-    const resp = await fetch("users.html");
-    const text = await resp.text();
-
-    // Вырезаем JSON из блока <script id="users-data">
-    const match = text.match(/<script[^>]*id="users-data"[^>]*>([\s\S]*?)<\/script>/);
-    if (!match) throw new Error("Не найден блок users-data");
-    return JSON.parse(match[1]);
-  } catch (e) {
-    console.error("Ошибка загрузки пользователей:", e);
-    return [];
+  const resp = await fetch("users.html");       // качаем users.html
+  const text = await resp.text();
+  const match = text.match(/<script[^>]*id="users-data"[^>]*>([\s\S]*?)<\/script>/);
+  if (!match) {
+    throw new Error("❌ Не найден JSON блок users-data");
   }
+  return JSON.parse(match[1]);  // парсим JSON
 }
 
 async function auth(){
   const login = document.getElementById("login").value.trim();
   const pass  = document.getElementById("password").value.trim();
 
-  const users = await loadUsers();
-  const user = users.find(u => u.login === login && u.password === pass);
+  try {
+    const users = await loadUsers();   // подтянули список
+    const user = users.find(u => u.login === login && u.password === pass);
 
-  if(user){
-    // Сохраняем текущего пользователя
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    if(user){
+      // сохраняем авторизованного в localStorage
+      localStorage.setItem("currentUser", JSON.stringify(user));
 
-    // Переход в админку или профиль
-    if(user.login === "admin"){
-      window.location = "admin.html";
+      // если админ — отправляем в admin.html, если обычный — в profile.html
+      if(user.login === "admin"){
+        window.location = "admin.html";
+      } else {
+        window.location = "profile.html";
+      }
     } else {
-      window.location = "profile.html";
+      document.getElementById("error").innerText = "❌ Неверный логин или пароль";
     }
-  } else {
-    document.getElementById("error").innerText = "❌ Неверный логин или пароль";
+  } catch(e){
+    document.getElementById("error").innerText = "⚠ Ошибка загрузки users.html";
+    console.error(e);
   }
-}
-
-function resetUsers(){
-  localStorage.removeItem("currentUser");
-  alert("♻ Локальные данные сброшены.\nТеперь доступны стандартные пользователи:\n admin / 1234\n user / pass");
-  location.reload();
 }
 </script>
 </body>
