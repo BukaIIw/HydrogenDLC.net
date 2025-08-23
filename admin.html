@@ -9,7 +9,7 @@
   table {margin:20px auto;border-collapse:collapse;width:95%;}
   th,td{border:1px solid #555;padding:6px;text-align:center;}
   th{background:#333;}
-  input{width:100%;background:#1c1c1c;color:white;border:none;padding:4px;}
+  input{width:90%;background:#1c1c1c;color:white;border:none;padding:4px;}
   button{margin:5px;padding:6px 12px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
   .del{background:#b33;}
   .add{background:#3a7;}
@@ -28,14 +28,17 @@
     <input id="newLogin" placeholder="Login">
     <input id="newPass" placeholder="Password">
     <input id="newUser" placeholder="Username">
-    <input id="newSub" placeholder="Sub (2026-01-01)">
     <button class="add" onclick="addUser()">➕ Добавить</button>
     <button onclick="goOut()">⬅ Выйти</button>
   </div>
 
 <script>
-let users = JSON.parse(localStorage.getItem("users")) || [];
+let users = JSON.parse(localStorage.getItem("users")) || [
+  {login:"admin",password:"1234",username:"Administrator",mem:"16384Mb",sub:"-",ident:"1",can_download:true},
+  {login:"user",password:"pass",username:"TestUser",mem:"4096Mb",sub:"-",ident:"2",can_download:false}
+];
 
+// Функция отрисовки таблицы
 function renderUsers(){
   const tbody=document.querySelector("#table tbody");
   tbody.innerHTML="";
@@ -46,8 +49,13 @@ function renderUsers(){
       <td><input value="${u.password}" onchange="edit(${i},'password',this.value)"></td>
       <td><input value="${u.username}" onchange="edit(${i},'username',this.value)"></td>
       <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
-      <td><input value="${u.sub}" onchange="edit(${i},'sub',this.value)"></td>
-      <td><input value="${u.can_download}" onchange="edit(${i},'can_download',this.value==='true')"></td>
+      <td>
+        <span id="sub_${i}">${u.sub}</span><br>
+        <button onclick="giveSub(${i})">Выдать 900 лет</button>
+      </td>
+      <td>
+        <input type="checkbox" ${u.can_download?"checked":""} onchange="toggleDownload(${i},this.checked)">
+      </td>
       <td>${u.ident}</td>
       <td><button class="del" onclick="delUser(${i})">❌</button></td>
     `;
@@ -56,8 +64,29 @@ function renderUsers(){
   localStorage.setItem("users", JSON.stringify(users));
 }
 
+// Редактирование простых полей
 function edit(i,key,value){ users[i][key]=value; localStorage.setItem("users",JSON.stringify(users)); }
+
+// Выдача подписки на 900 лет
+function giveSub(i){
+  let today=new Date();
+  today.setFullYear(today.getFullYear()+900);
+  let d=today.toISOString().split("T")[0]; // формат YYYY-MM-DD
+  users[i].sub=d;
+  document.getElementById("sub_"+i).innerText=d;
+  localStorage.setItem("users",JSON.stringify(users));
+}
+
+// Переключение can_download
+function toggleDownload(i,val){
+  users[i].can_download=val;
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+// Удалить пользователя
 function delUser(i){ users.splice(i,1); localStorage.setItem("users",JSON.stringify(users)); renderUsers(); }
+
+// Добавить нового
 function addUser(){
   let id=users.length+1;
   users.push({
@@ -65,15 +94,18 @@ function addUser(){
     password:document.getElementById("newPass").value||"1234",
     username:document.getElementById("newUser").value||"User"+id,
     mem:"1024Mb",
-    sub:document.getElementById("newSub").value||"-",
+    sub:"-",
     ident:String(id),
     can_download:false
   });
   localStorage.setItem("users",JSON.stringify(users));
   renderUsers();
 }
+
+// Выйти
 function goOut(){ window.location="index.html"; }
 
+// Запуск
 renderUsers();
 </script>
 </body>
