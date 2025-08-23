@@ -72,14 +72,21 @@
     <button onclick="goOut()">⬅ Выйти</button>
   </div>
 
-<script>
-// ------- Пользователи -------
-let users = JSON.parse(localStorage.getItem("users")) || [
-  {login:"admin",password:"1234",username:"Administrator",mem:"16384Mb",sub:"-",ident:"1",can_download:true},
-  {login:"user",password:"pass",username:"TestUser",mem:"4096Mb",sub:"-",ident:"2",can_download:false}
-];
+<!-- подключаем базу пользователей -->
+<script src="users.html"></script>
 
-// ------- Отрисовка таблицы -------
+<script>
+// ------- Инициализация -------
+let users;
+try {
+  users = JSON.parse(localStorage.getItem("users"));
+  if(!Array.isArray(users)) throw "нет массива";
+} catch(e){
+  users = window.users || [];
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+// ------- Рендеринг таблицы -------
 function renderUsers(){
   const tbody=document.querySelector("#table tbody");
   tbody.innerHTML="";
@@ -111,13 +118,13 @@ function renderUsers(){
   localStorage.setItem("users", JSON.stringify(users));
 }
 
-// ------- Изменение -------
+// ------- Изменение полей -------
 function edit(i,key,value){
   users[i][key]=value;
   localStorage.setItem("users",JSON.stringify(users));
 }
 
-// ------- Выдать подписку -------
+// ------- Выдача подписки -------
 function giveSub(i,amount,type){
   let baseDate = new Date();
   if(users[i].sub && users[i].sub !== "-"){
@@ -132,7 +139,7 @@ function giveSub(i,amount,type){
   localStorage.setItem("users",JSON.stringify(users));
 }
 
-// ------- Сбросить подписку (снять) -------
+// ------- Снять подписку -------
 function resetSub(i){
   users[i].sub = "-";
   document.getElementById("sub_"+i).innerText="-";
