@@ -4,18 +4,19 @@
 <meta charset="UTF-8">
 <title>Admin Panel</title>
 <style>
-  body {background:#121212;color:white;font-family:Arial;}
-  h2 {text-align:center;margin-top:20px;}
+  body {background:#121212;color:#fff;font-family:Arial;}
+  h2 {text-align:center;margin:20px;}
   table {margin:20px auto;border-collapse:collapse;width:95%;}
   th,td {border:1px solid #555;padding:6px;text-align:center;vertical-align:middle;}
   th {background:#333;}
-  input {width:90%;background:#1c1c1c;color:white;border:none;padding:4px;}
-  button {margin:3px;padding:6px 10px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
+  input {width:90%;background:#1c1c1c;color:#fff;border:none;padding:4px;}
+  button {margin:3px;padding:6px 10px;border:none;border-radius:4px;background:#6A5ACD;color:#fff;cursor:pointer;}
   button:hover {opacity:0.9;}
   .del {background:#b33;}
   .add {background:#3a7;}
   .small {padding:3px 6px;font-size:12px;}
   .resetSub {background:#c44;}
+  .save {background:#27ae60;}
 </style>
 </head>
 <body>
@@ -42,63 +43,68 @@
     <input id="newPass" placeholder="Password">
     <input id="newUser" placeholder="Username">
     <button class="add" onclick="addUser()">➕ Добавить</button>
-    <button onclick="goOut()">⬅ Выйти</button>
+    <button class="save" onclick="downloadUsers()">💾 Скачать users.html</button>
+    <a href="index.html"><button>⬅ Выйти</button></a>
   </div>
 
 <script>
-// ---------- Данные ----------
-let users = JSON.parse(localStorage.getItem("users")) || [
-  {login:"admin",password:"1234",username:"Administrator",mem:"16384Mb",sub:"2090-01-01",ident:"1",can_download:true},
-  {login:"user",password:"pass",username:"TestUser",mem:"4096Mb",sub:"-",ident:"2",can_download:false}
-];
+let users=[];
 
-// ---------- Рендер таблицы ----------
-function renderUsers(){
-  const tbody=document.querySelector("#table tbody");
+// ───────── Загрузка из users.html ─────────
+async function loadUsers(){
+  const resp = await fetch("users.html");
+  const text = await resp.text();
+  const match = text.match(/<script[^>]*id="users-data"[^>]*>([\s\S]*?)<\/script>/);
+  if(match){
+    users = JSON.parse(match[1]);
+    render();
+  }
+}
+
+// ───────── Отрисовка таблицы ─────────
+function render(){
+  const tbody = document.querySelector("#table tbody");
   tbody.innerHTML="";
   users.forEach((u,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td><input value="${u.login}" onchange="edit(${i},'login',this.value)"></td>
-      <td><input value="${u.password}" onchange="edit(${i},'password',this.value)"></td>
-      <td><input value="${u.username}" onchange="edit(${i},'username',this.value)"></td>
-      <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
-      <td>
-        <span id="sub_${i}">${u.sub}</span><br>
-        <button class="small" onclick="giveSub(${i},1,'d')">+1д</button>
-        <button class="small" onclick="giveSub(${i},1,'y')">+1г</button>
-        <button class="small" onclick="giveSub(${i},10,'y')">+10л</button>
-        <button class="small" onclick="giveSub(${i},900,'y')">+900л</button>
-        <button class="small resetSub" onclick="resetSub(${i})">❌ Снять</button>
-      </td>
-      <td><input type="checkbox" ${u.can_download?"checked":""} onchange="toggleDownload(${i},this.checked)"></td>
-      <td>${u.ident}</td>
-      <td><button class="del" onclick="delUser(${i})">❌</button></td>
+    tbody.innerHTML+=`
+      <tr>
+        <td><input value="${u.login}" onchange="edit(${i},'login',this.value)"></td>
+        <td><input value="${u.password}" onchange="edit(${i},'password',this.value)"></td>
+        <td><input value="${u.username}" onchange="edit(${i},'username',this.value)"></td>
+        <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
+        <td>
+          <span id="sub_${i}">${u.sub}</span><br>
+          <button class="small" onclick="giveSub(${i},1,'d')">+1д</button>
+          <button class="small" onclick="giveSub(${i},1,'y')">+1г</button>
+          <button class="small" onclick="giveSub(${i},10,'y')">+10л</button>
+          <button class="small" onclick="giveSub(${i},900,'y')">+900л</button>
+          <button class="small resetSub" onclick="resetSub(${i})">❌ Снять</button>
+        </td>
+        <td><input type="checkbox" ${u.can_download?"checked":""} onchange="toggleDownload(${i},this.checked)"></td>
+        <td>${u.ident}</td>
+        <td><button class="del" onclick="delUser(${i})">❌</button></td>
+      </tr>
     `;
-    tbody.appendChild(tr);
   });
-  localStorage.setItem("users", JSON.stringify(users));
 }
 
-// ---------- Логика ----------
-function edit(i,key,value){ users[i][key] = value; save(); }
+// ───────── Логика изменения ─────────
+function edit(i,key,value){ users[i][key]=value; render(); }
 
 function giveSub(i,amount,type){
-  let baseDate = new Date();
-  if(users[i].sub && users[i].sub !== "-"){
-    let curDate=new Date(users[i].sub);
-    if(curDate>baseDate) baseDate=curDate;
+  let base=new Date();
+  if(users[i].sub && users[i].sub!="-"){
+    let c=new Date(users[i].sub);
+    if(c>base) base=c;
   }
-  if(type==="d") baseDate.setDate(baseDate.getDate()+amount);
-  if(type==="y") baseDate.setFullYear(baseDate.getFullYear()+amount);
-
-  users[i].sub = baseDate.toISOString().split("T")[0];
-  document.getElementById("sub_"+i).innerText = users[i].sub;
-  save();
+  if(type=="d") base.setDate(base.getDate()+amount);
+  if(type=="y") base.setFullYear(base.getFullYear()+amount);
+  users[i].sub=base.toISOString().split("T")[0];
+  render();
 }
-function resetSub(i){ users[i].sub="-"; document.getElementById("sub_"+i).innerText="-"; save(); }
-function toggleDownload(i,val){ users[i].can_download=val; save(); }
-function delUser(i){ users.splice(i,1); save(); renderUsers(); }
+function resetSub(i){ users[i].sub="-"; render(); }
+function toggleDownload(i,val){ users[i].can_download=val; }
+function delUser(i){ users.splice(i,1); render(); }
 function addUser(){
   let id=users.length+1;
   users.push({
@@ -110,14 +116,28 @@ function addUser(){
     ident:String(id),
     can_download:false
   });
-  save(); renderUsers();
+  render();
 }
 
-function save(){ localStorage.setItem("users",JSON.stringify(users)); }
-function goOut(){ window.location="index.html"; }
+// ───────── Генерация нового users.html ─────────
+function downloadUsers(){
+  const content = `<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Users Database</title></head>
+<body>
+<script type="application/json" id="users-data">
+${JSON.stringify(users,null,2)}
+</script>
+</body>
+</html>`;
+  const blob = new Blob([content],{type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "users.html";
+  a.click();
+}
 
-// ---------- Старт ----------
-renderUsers();
+loadUsers();
 </script>
 </body>
 </html>
