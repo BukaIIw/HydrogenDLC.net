@@ -29,7 +29,10 @@
     border:none;
     font-size:15px;
   }
-  input {background:#2a2a2a;color:#fff;}
+  input {
+    background:#2a2a2a;
+    color:#fff;
+  }
   button {
     background:#6A5ACD;
     color:#fff;
@@ -37,10 +40,12 @@
     cursor:pointer;
     transition:0.3s;
   }
-  button:hover {background:#5848c2;}
-  #error{color:red; margin-top:10px;}
-  .danger{background:#b33;}
-  .danger:hover{background:#922;}
+  button:hover { background:#5848c2; }
+  #error { color:red; margin-top:10px; }
+  .danger {
+    background:#b33;
+  }
+  .danger:hover { background:#922; }
 </style>
 </head>
 <body>
@@ -53,47 +58,50 @@
     <button class="danger" onclick="resetUsers()">♻ Сбросить пользователей</button>
   </div>
 
-<!-- подключаем файл с пользователями -->
-<script src="users.html"></script>
-
 <script>
-  // Загружаем массив пользователей из users.html или из локалки
-  let users;
+async function loadUsers(){
   try {
-    users = JSON.parse(localStorage.getItem("users"));
-    if(!Array.isArray(users) || users.length===0) throw "нет массива";
-  } catch(e){
-    // fallback на дефолтных из users.html
-    users = window.users || [];
-    localStorage.setItem("users", JSON.stringify(users));
+    // Загружаем users.html
+    const resp = await fetch("users.html");
+    const text = await resp.text();
+
+    // Вырезаем JSON из блока <script id="users-data">
+    const match = text.match(/<script[^>]*id="users-data"[^>]*>([\s\S]*?)<\/script>/);
+    if (!match) throw new Error("Не найден блок users-data");
+    return JSON.parse(match[1]);
+  } catch (e) {
+    console.error("Ошибка загрузки пользователей:", e);
+    return [];
   }
+}
 
-  // Авторизация
-  function auth(){
-    const login = document.getElementById("login").value.trim();
-    const pass  = document.getElementById("password").value.trim();
-    const user = users.find(u=>u.login===login && u.password===pass);
+async function auth(){
+  const login = document.getElementById("login").value.trim();
+  const pass  = document.getElementById("password").value.trim();
 
-    if(user){
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      if(user.login==="admin") {
-        window.location="admin.html";
-      } else {
-        window.location="profile.html";
-      }
+  const users = await loadUsers();
+  const user = users.find(u => u.login === login && u.password === pass);
+
+  if(user){
+    // Сохраняем текущего пользователя
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
+    // Переход в админку или профиль
+    if(user.login === "admin"){
+      window.location = "admin.html";
     } else {
-      document.getElementById("error").innerText="❌ Неверный логин или пароль";
+      window.location = "profile.html";
     }
+  } else {
+    document.getElementById("error").innerText = "❌ Неверный логин или пароль";
   }
+}
 
-  // Сбросить пользователей на дефолтных
-  function resetUsers(){
-    if(window.users){
-      localStorage.setItem("users", JSON.stringify(window.users));
-      alert("✅ Список пользователей сброшен!\nadmin/1234 и user/pass снова доступны.");
-      location.reload();
-    }
-  }
+function resetUsers(){
+  localStorage.removeItem("currentUser");
+  alert("♻ Локальные данные сброшены.\nТеперь доступны стандартные пользователи:\n admin / 1234\n user / pass");
+  location.reload();
+}
 </script>
 </body>
 </html>
