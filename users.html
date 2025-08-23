@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Users Database</title>
+</head>
+<body>
+  <!-- Хранилище пользователей в виде JSON -->
+  <script type="application/json" id="users-data">
+  [
+    {
+      "login": "admin",
+      "password": "1234",
+      "username": "Administrator",
+      "sub": "-",
+      "mem": "16384Mb",
+      "ident": "1",
+      "can_download": true
+    },
+    {
+      "login": "user",
+      "password": "pass",
+      "username": "TestUser",
+      "sub": "-",
+      "mem": "4096Mb",
+      "ident": "2",
+      "can_download": false
+    }
+  ]
+  </script>
+
+  <h2 style="text-align:center;color:lightgreen;">Users Database</h2>
+  <p style="text-align:center;color:#aaa;">
+    Этот файл содержит всех пользователей.  
+    Данные лежат в виде JSON внутри тега <code>&lt;script id="users-data"&gt;</code>.
+  </p>
+</body>
+</html>
