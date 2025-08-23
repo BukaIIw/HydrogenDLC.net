@@ -8,14 +8,14 @@
   h2 {text-align:center;margin-top:20px;}
   table {margin:20px auto;border-collapse:collapse;width:95%;}
   th,td {border:1px solid #555;padding:6px;text-align:center;vertical-align:middle;}
-  th{background:#333;}
-  input{width:90%;background:#1c1c1c;color:white;border:none;padding:4px;}
-  button{margin:3px;padding:6px 10px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
-  .small{padding:3px 6px;font-size:12px;}
-  .del{background:#b33;}
-  .resetSub{background:#c44;}
-  .add{background:#3a7;}
-  .save{background:#27ae60;}
+  th {background:#333;}
+  input {width:90%;background:#1c1c1c;color:white;border:none;padding:4px;}
+  button {margin:3px;padding:6px 10px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
+  button:hover {opacity:0.9;}
+  .del {background:#b33;}
+  .add {background:#3a7;}
+  .small {padding:3px 6px;font-size:12px;}
+  .resetSub {background:#c44;}
 </style>
 </head>
 <body>
@@ -42,112 +42,81 @@
     <input id="newPass" placeholder="Password">
     <input id="newUser" placeholder="Username">
     <button class="add" onclick="addUser()">➕ Добавить</button>
-    <button class="save" onclick="saveToGitHub()">💾 Сохранить в GitHub</button>
     <button onclick="goOut()">⬅ Выйти</button>
   </div>
 
 <script>
-// Демо-массив по умолчанию
-let users=[
+// ---------- Данные ----------
+let users = JSON.parse(localStorage.getItem("users")) || [
   {login:"admin",password:"1234",username:"Administrator",mem:"16384Mb",sub:"2090-01-01",ident:"1",can_download:true},
   {login:"user",password:"pass",username:"TestUser",mem:"4096Mb",sub:"-",ident:"2",can_download:false}
 ];
 
+// ---------- Рендер таблицы ----------
 function renderUsers(){
   const tbody=document.querySelector("#table tbody");
   tbody.innerHTML="";
   users.forEach((u,i)=>{
-    tbody.innerHTML+=`
-      <tr>
-        <td><input value="${u.login}" onchange="edit(${i},'login',this.value)"></td>
-        <td><input value="${u.password}" onchange="edit(${i},'password',this.value)"></td>
-        <td><input value="${u.username}" onchange="edit(${i},'username',this.value)"></td>
-        <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
-        <td>
-          <span id="sub_${i}">${u.sub}</span><br>
-          <button class="small" onclick="giveSub(${i},1,'d')">+1д</button>
-          <button class="small" onclick="giveSub(${i},1,'y')">+1г</button>
-          <button class="small" onclick="giveSub(${i},10,'y')">+10л</button>
-          <button class="small" onclick="giveSub(${i},900,'y')">+900л</button>
-          <button class="small resetSub" onclick="resetSub(${i})">❌ Снять</button>
-        </td>
-        <td><input type="checkbox" ${u.can_download?"checked":""} onchange="toggleDownload(${i},this.checked)"></td>
-        <td>${u.ident}</td>
-        <td><button class="del" onclick="delUser(${i})">❌</button></td>
-      </tr>
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><input value="${u.login}" onchange="edit(${i},'login',this.value)"></td>
+      <td><input value="${u.password}" onchange="edit(${i},'password',this.value)"></td>
+      <td><input value="${u.username}" onchange="edit(${i},'username',this.value)"></td>
+      <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
+      <td>
+        <span id="sub_${i}">${u.sub}</span><br>
+        <button class="small" onclick="giveSub(${i},1,'d')">+1д</button>
+        <button class="small" onclick="giveSub(${i},1,'y')">+1г</button>
+        <button class="small" onclick="giveSub(${i},10,'y')">+10л</button>
+        <button class="small" onclick="giveSub(${i},900,'y')">+900л</button>
+        <button class="small resetSub" onclick="resetSub(${i})">❌ Снять</button>
+      </td>
+      <td><input type="checkbox" ${u.can_download?"checked":""} onchange="toggleDownload(${i},this.checked)"></td>
+      <td>${u.ident}</td>
+      <td><button class="del" onclick="delUser(${i})">❌</button></td>
     `;
+    tbody.appendChild(tr);
   });
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
-// ---- utils ----
-function edit(i,k,v){users[i][k]=v;}
-function giveSub(i,a,t){
-  let base=new Date();
-  if(users[i].sub && users[i].sub!="-"){let c=new Date(users[i].sub);if(c>base)base=c;}
-  if(t=="d") base.setDate(base.getDate()+a);
-  if(t=="y") base.setFullYear(base.getFullYear()+a);
-  users[i].sub=base.toISOString().split("T")[0];
-  renderUsers();
+// ---------- Логика ----------
+function edit(i,key,value){ users[i][key] = value; save(); }
+
+function giveSub(i,amount,type){
+  let baseDate = new Date();
+  if(users[i].sub && users[i].sub !== "-"){
+    let curDate=new Date(users[i].sub);
+    if(curDate>baseDate) baseDate=curDate;
+  }
+  if(type==="d") baseDate.setDate(baseDate.getDate()+amount);
+  if(type==="y") baseDate.setFullYear(baseDate.getFullYear()+amount);
+
+  users[i].sub = baseDate.toISOString().split("T")[0];
+  document.getElementById("sub_"+i).innerText = users[i].sub;
+  save();
 }
-function resetSub(i){users[i].sub="-";renderUsers();}
-function toggleDownload(i,v){users[i].can_download=v;}
-function delUser(i){users.splice(i,1);renderUsers();}
+function resetSub(i){ users[i].sub="-"; document.getElementById("sub_"+i).innerText="-"; save(); }
+function toggleDownload(i,val){ users[i].can_download=val; save(); }
+function delUser(i){ users.splice(i,1); save(); renderUsers(); }
 function addUser(){
   let id=users.length+1;
   users.push({
-    login:document.getElementById("newLogin").value||"u"+id,
+    login:document.getElementById("newLogin").value||"user"+id,
     password:document.getElementById("newPass").value||"1234",
     username:document.getElementById("newUser").value||"User"+id,
-    mem:"1024Mb",sub:"-",ident:String(id),can_download:false
+    mem:"1024Mb",
+    sub:"-",
+    ident:String(id),
+    can_download:false
   });
-  renderUsers();
-}
-function goOut(){window.location="index.html";}
-
-// ---- GitHub API сохранение ⚠️ ----
-async function saveToGitHub(){
-  const OWNER="ТВОЙ_GITHUB_НИК";
-  const REPO="HydrogenDLC.net";
-  const PATH="users.html";
-  const TOKEN="ghp_ТВОЙ_ТОКЕН";  // ⚠️ тестовый токен сюда временно
-
-  // Формируем users.html с JSON
-  const content = `
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Users Database</title></head><body>
-<script type="application/json" id="users-data">
-${JSON.stringify(users,null,2)}
-</script>
-</body></html>`;
-
-  // Берём SHA существующего файла
-  const url=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
-  const getResp=await fetch(url,{headers:{Authorization:`token ${TOKEN}`}});
-  const info=await getResp.json();
-
-  // Кодируем содержимое (base64)
-  const encoded=btoa(unescape(encodeURIComponent(content)));
-
-  // Отправляем новый файл через PUT
-  const resp=await fetch(url,{
-    method:"PUT",
-    headers:{
-      Authorization:`token ${TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      message:"update users.html via Admin Panel",
-      content:encoded,
-      sha:info.sha
-    })
-  });
-
-  if(resp.ok){
-    alert("✅ users.html обновлён в GitHub!");
-  } else {
-    alert("❌ Ошибка: "+await resp.text());
-  }
+  save(); renderUsers();
 }
 
+function save(){ localStorage.setItem("users",JSON.stringify(users)); }
+function goOut(){ window.location="index.html"; }
+
+// ---------- Старт ----------
 renderUsers();
 </script>
 </body>
