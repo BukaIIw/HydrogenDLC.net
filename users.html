@@ -5,14 +5,14 @@
   <title>Users Database</title>
 </head>
 <body>
-  <!-- Хранилище пользователей в виде JSON -->
+  <!-- Хранилище пользователей -->
   <script type="application/json" id="users-data">
   [
     {
       "login": "admin",
       "password": "1234",
       "username": "Administrator",
-      "sub": "-",
+      "sub": "2099-01-01",
       "mem": "16384Mb",
       "ident": "1",
       "can_download": true
@@ -29,10 +29,9 @@
   ]
   </script>
 
-  <h2 style="text-align:center;color:lightgreen;">Users Database</h2>
-  <p style="text-align:center;color:#aaa;">
-    Этот файл содержит всех пользователей.  
-    Данные лежат в виде JSON внутри тега <code>&lt;script id="users-data"&gt;</code>.
-  </p>
+  <h3 style="text-align:center;color:#aaa;">
+    Users Database — основной файл базы.  
+    Здесь JSON с пользователями, который читают Index, Admin Panel и Launcher.  
+  </h3>
 </body>
 </html>
