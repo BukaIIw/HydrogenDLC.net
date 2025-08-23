@@ -2,80 +2,28 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Профиль</title>
-<style>
-  body {background:#121212;color:#fff;font-family:Arial;text-align:center;}
-  .box {margin:120px auto;width:420px;padding:25px;background:#1e1e1e;border-radius:12px;}
-  button{
-    padding:10px 20px;
-    margin:10px;
-    background:#6A5ACD;
-    color:white;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-  }
-  .disabled{background:#555;cursor:not-allowed;}
-</style>
+<title>Users Data</title>
 </head>
 <body>
-  <div class="box">
-    <h2>👤 Профиль</h2>
-    <p><b>Ник:</b> <span id="username"></span></p>
-    <p><b>Подписка:</b> <span id="sub"></span></p>
-    <p><b>Память:</b> <span id="mem"></span></p>
-    <p><b>ID:</b> <span id="ident"></span></p>
-    <p><b>Скачивание:</b> <span id="can"></span></p>
-
-    <button id="downloadBtn" onclick="downloadFile()">⬇ Скачать файл</button>
-    <button onclick="logout()">Выйти</button>
-  </div>
-
 <script>
-  const user = JSON.parse(localStorage.getItem("currentUser")||"{}");
-  if(!user.login){ window.location="index.html"; }
+// 🚀 "База данных" пользователей
+window.users = JSON.parse(localStorage.getItem("users")) || [
+  {login:"admin", password:"1234", username:"Administrator", mem:"16384Mb", sub:"-", ident:"1", can_download:true},
+  {login:"user", password:"pass", username:"TestUser", mem:"4096Mb", sub:"-", ident:"2", can_download:false}
+];
 
-  // выводим данные
-  document.getElementById("username").innerText=user.username||"-";
-  document.getElementById("sub").innerText=user.sub||"⛔ нет подписки";
-  document.getElementById("mem").innerText=user.mem||"-";
-  document.getElementById("ident").innerText=user.ident||"-";
-  document.getElementById("can").innerText=user.can_download?"✅ Да":"❌ Нет";
+// Авто-сохранение в LocalStorage
+localStorage.setItem("users", JSON.stringify(window.users));
 
-  const btn = document.getElementById("downloadBtn");
-
-  // логика проверки подписки
-  let canDownload = false;
-  if(user.sub && user.sub !== "-"){  
-    try {
-      const today = new Date();
-      const subDate = new Date(user.sub); // формат "2026-05-10"
-      if(subDate >= today){ canDownload = true; }
-    } catch(e){ }
-  }
-
-  if(!canDownload){
-    btn.classList.add("disabled");
-    btn.disabled = true;
-    btn.innerText = "🚫 Подписка не активна";
-  }
-
-  function downloadFile(){
-    if(!canDownload) return;
-    // ⚠️ тут можно указать любой файл, например demo.bin
-    const url = "https://speed.hetzner.de/1MB.bin";
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "file.bin";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }
-
-  function logout(){
-    localStorage.removeItem("currentUser");
-    window.location="index.html";
-  }
+// Метод для обновления списка (например, из админки)
+window.saveUsers = function(newUsers){
+  window.users = newUsers;
+  localStorage.setItem("users", JSON.stringify(window.users));
+  console.log("✅ Users updated:", window.users);
+};
 </script>
+
+<h2 style="color:lightgreen; text-align:center;">Users.html</h2>
+<p style="text-align:center; color:#999;">Файл-база. Используй window.users в других файлах.</p>
 </body>
 </html>
