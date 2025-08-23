@@ -7,12 +7,13 @@
   body {background:#121212;color:white;font-family:Arial;}
   h2 {text-align:center;margin-top:20px;}
   table {margin:20px auto;border-collapse:collapse;width:95%;}
-  th,td{border:1px solid #555;padding:6px;text-align:center;}
+  th,td{border:1px solid #555;padding:6px;text-align:center;vertical-align:middle;}
   th{background:#333;}
   input{width:90%;background:#1c1c1c;color:white;border:none;padding:4px;}
-  button{margin:5px;padding:6px 12px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
+  button{margin:3px;padding:6px 10px;border:none;border-radius:4px;background:#6A5ACD;color:white;cursor:pointer;}
   .del{background:#b33;}
   .add{background:#3a7;}
+  .small{padding:3px 6px;font-size:12px;}
 </style>
 </head>
 <body>
@@ -38,7 +39,7 @@ let users = JSON.parse(localStorage.getItem("users")) || [
   {login:"user",password:"pass",username:"TestUser",mem:"4096Mb",sub:"-",ident:"2",can_download:false}
 ];
 
-// Функция отрисовки таблицы
+// -------- Отрисовка таблицы --------
 function renderUsers(){
   const tbody=document.querySelector("#table tbody");
   tbody.innerHTML="";
@@ -51,7 +52,10 @@ function renderUsers(){
       <td><input value="${u.mem}" onchange="edit(${i},'mem',this.value)"></td>
       <td>
         <span id="sub_${i}">${u.sub}</span><br>
-        <button onclick="giveSub(${i})">Выдать 900 лет</button>
+        <button class="small" onclick="giveSub(${i},1,'d')">+1 день</button>
+        <button class="small" onclick="giveSub(${i},1,'y')">+1 год</button>
+        <button class="small" onclick="giveSub(${i},10,'y')">+10 лет</button>
+        <button class="small" onclick="giveSub(${i},900,'y')">+900 лет</button>
       </td>
       <td>
         <input type="checkbox" ${u.can_download?"checked":""} onchange="toggleDownload(${i},this.checked)">
@@ -64,29 +68,45 @@ function renderUsers(){
   localStorage.setItem("users", JSON.stringify(users));
 }
 
-// Редактирование простых полей
-function edit(i,key,value){ users[i][key]=value; localStorage.setItem("users",JSON.stringify(users)); }
+// -------- Изменение значений --------
+function edit(i,key,value){ 
+  users[i][key]=value; 
+  localStorage.setItem("users",JSON.stringify(users)); 
+}
 
-// Выдача подписки на 900 лет
-function giveSub(i){
-  let today=new Date();
-  today.setFullYear(today.getFullYear()+900);
-  let d=today.toISOString().split("T")[0]; // формат YYYY-MM-DD
-  users[i].sub=d;
-  document.getElementById("sub_"+i).innerText=d;
+// -------- Выдать подписку --------
+function giveSub(i,amount,type){
+  let baseDate=new Date();
+
+  // если уже есть подписка в будущем → продолжаем с неё
+  if(users[i].sub && users[i].sub!=="-"){
+    let current=new Date(users[i].sub);
+    if(current>baseDate){ baseDate=current; }
+  }
+
+  if(type==="d"){ baseDate.setDate(baseDate.getDate()+amount); }
+  if(type==="y"){ baseDate.setFullYear(baseDate.getFullYear()+amount); }
+
+  let newDate=baseDate.toISOString().split("T")[0]; // YYYY-MM-DD
+  users[i].sub=newDate;
+  document.getElementById("sub_"+i).innerText=newDate;
   localStorage.setItem("users",JSON.stringify(users));
 }
 
-// Переключение can_download
+// -------- Переключение can_download --------
 function toggleDownload(i,val){
   users[i].can_download=val;
   localStorage.setItem("users", JSON.stringify(users));
 }
 
-// Удалить пользователя
-function delUser(i){ users.splice(i,1); localStorage.setItem("users",JSON.stringify(users)); renderUsers(); }
+// -------- Удалить --------
+function delUser(i){ 
+  users.splice(i,1); 
+  localStorage.setItem("users",JSON.stringify(users)); 
+  renderUsers(); 
+}
 
-// Добавить нового
+// -------- Добавить --------
 function addUser(){
   let id=users.length+1;
   users.push({
@@ -102,10 +122,10 @@ function addUser(){
   renderUsers();
 }
 
-// Выйти
+// -------- Выйти --------
 function goOut(){ window.location="index.html"; }
 
-// Запуск
+// -------- Инициализация --------
 renderUsers();
 </script>
 </body>
