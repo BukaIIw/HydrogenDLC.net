@@ -2,18 +2,25 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Вход</title>
+<title>LoaderGuard — Вход</title>
 <style>
-  body {background:#121212;color:#fff;font-family:Arial;text-align:center; margin:0;}
+  body {
+    background:#121212;
+    color:#fff;
+    font-family:Arial, sans-serif;
+    text-align:center;
+    margin:0;
+    padding:0;
+  }
   .box {
     margin:120px auto;
     width:350px;
     padding:25px;
     background:#1e1e1e;
     border-radius:12px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.6);
+    box-shadow:0 0 15px rgba(0,0,0,0.6);
   }
-  h2 {margin-bottom: 20px;}
+  h2 { margin-bottom: 20px; }
   input,button {
     width:90%;
     padding:10px;
@@ -33,7 +40,7 @@
   button:hover {background:#5848c2;}
   #error{color:red; margin-top:10px;}
   .danger{background:#b33;}
-  .danger:hover{background:#a22;}
+  .danger:hover{background:#922;}
 </style>
 </head>
 <body>
@@ -46,28 +53,22 @@
     <button class="danger" onclick="resetUsers()">♻ Сбросить пользователей</button>
   </div>
 
-<script>
-  // ---- дефолтные аккаунты ----
-  const defaultUsers = [
-    {login:"admin", password:"1234", username:"Administrator", sub:"-", mem:"16384Mb", ident:"1", can_download:true},
-    {login:"user", password:"pass", username:"TestUser", sub:"-", mem:"4096Mb", ident:"2", can_download:false}
-  ];
+<!-- подключаем файл с пользователями -->
+<script src="users.html"></script>
 
-  // загружаем список users из localStorage или сбрасываем на дефолтный
-  function loadUsers(){
-    try {
-      let stored = JSON.parse(localStorage.getItem("users"));
-      if(Array.isArray(stored) && stored.length) return stored;
-      else throw "empty";
-    } catch(e){
-      localStorage.setItem("users", JSON.stringify(defaultUsers));
-      return defaultUsers;
-    }
+<script>
+  // Загружаем массив пользователей из users.html или из локалки
+  let users;
+  try {
+    users = JSON.parse(localStorage.getItem("users"));
+    if(!Array.isArray(users) || users.length===0) throw "нет массива";
+  } catch(e){
+    // fallback на дефолтных из users.html
+    users = window.users || [];
+    localStorage.setItem("users", JSON.stringify(users));
   }
 
-  let users = loadUsers();
-
-  // ---- авторизация ----
+  // Авторизация
   function auth(){
     const login = document.getElementById("login").value.trim();
     const pass  = document.getElementById("password").value.trim();
@@ -75,18 +76,23 @@
 
     if(user){
       localStorage.setItem("currentUser", JSON.stringify(user));
-      if(user.login==="admin") window.location="admin.html";
-      else window.location="profile.html";
+      if(user.login==="admin") {
+        window.location="admin.html";
+      } else {
+        window.location="profile.html";
+      }
     } else {
       document.getElementById("error").innerText="❌ Неверный логин или пароль";
     }
   }
 
-  // ---- сброс пользователей ----
+  // Сбросить пользователей на дефолтных
   function resetUsers(){
-    localStorage.setItem("users", JSON.stringify(defaultUsers));
-    alert("✅ Пользователи сброшены!\n\nДоступны учётки:\n admin / 1234\n user / pass ");
-    location.reload();
+    if(window.users){
+      localStorage.setItem("users", JSON.stringify(window.users));
+      alert("✅ Список пользователей сброшен!\nadmin/1234 и user/pass снова доступны.");
+      location.reload();
+    }
   }
 </script>
 </body>
